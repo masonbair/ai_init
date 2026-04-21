@@ -1,0 +1,32 @@
+[package]
+name = "ai-init"
+version = "0.1.0"
+edition = "2021"
+authors = ["Mason"]
+description = "AI-ready project initializer for agent workflows"
+license = "MIT"
+repository = "https://github.com/yourusername/ai-init"
+keywords = ["ai", "cli", "project", "scaffolding", "initialization"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+dialoguer = { version = "0.11", features = ["fuzzy-select"] }
+tera = "1.19"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+which = "6.0"
+git2 = "0.18"
+chrono = "0.4"
+colored = "2.1"
+directories = "5.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3.10"
+assert_cmd = "2.0"
+predicates = "3.1"
+
+[[bin]]
+name = "ai-init"
+path = "src/main.rs"

@@ -1,0 +1,95 @@
+# AI-generated context (regenerate on demand)
+.ai/context/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+{% if project_type == "web" or "TypeScript" in languages or "JavaScript" in languages %}
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/cache
+.pnpm-store/
+
+{% endif %}
+{% if "Python" in languages %}
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+ENV/
+env/
+.venv/
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+{% endif %}
+{% if "Rust" in languages %}
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+
+{% endif %}
+{% if "Go" in languages %}
+# Go
+/vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+{% endif %}
+{% if "Java" in languages or "Kotlin" in languages %}
+# Java/Kotlin
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+target/
+.gradle/
+build/
+out/
+
+{% endif %}
+# Build outputs
+dist/
+build/
+out/
+*.egg-info/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+logs/
