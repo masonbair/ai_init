@@ -12,6 +12,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(dead_code)]
 pub enum GeneratorError {
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),

@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(dead_code)]
 pub enum InteractiveError {
     #[error("User cancelled")]
     Cancelled,

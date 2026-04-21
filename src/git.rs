@@ -7,6 +7,7 @@ use std::path::Path;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(dead_code)]
 pub enum GitError {
     #[error("Git operation failed: {0}")]
     Git2Error(#[from] git2::Error),
@@ -36,6 +37,7 @@ impl GitOperations {
     }
 
     /// Initialize or open existing repository.
+    #[allow(dead_code)]
     pub fn init_or_open(path: &Path) -> Result<Repository, GitError> {
         if Self::is_git_repo(path) {
             Ok(Repository::open(path)?)

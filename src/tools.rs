@@ -49,6 +49,7 @@ impl ToolDetector {
     }
 
     /// Create a detector with custom tool paths.
+    #[allow(dead_code)]
     pub fn with_custom_paths(custom_paths: HashMap<String, PathBuf>) -> Self {
         Self { custom_paths }
     }
@@ -95,11 +96,13 @@ impl ToolDetector {
     }
 
     /// Get count of installed tools.
+    #[allow(dead_code)]
     pub fn installed_count(&self) -> usize {
         self.detect_all().iter().filter(|t| t.installed).count()
     }
 
     /// Get total count of known tools.
+    #[allow(dead_code)]
     pub fn total_count(&self) -> usize {
         KNOWN_TOOLS.len()
     }

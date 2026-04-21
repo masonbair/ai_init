@@ -132,6 +132,7 @@ impl Config {
     }
 
     /// Save configuration to the default location.
+    #[allow(dead_code)]
     pub fn save(&self) -> Result<(), ConfigError> {
         let path = Self::default_path().ok_or(ConfigError::NoConfigDir)?;
 
@@ -147,6 +148,7 @@ impl Config {
     }
 
     /// Create a default config file if it doesn't exist.
+    #[allow(dead_code)]
     pub fn create_default_if_missing() -> Result<bool, ConfigError> {
         let path = Self::default_path().ok_or(ConfigError::NoConfigDir)?;
 
