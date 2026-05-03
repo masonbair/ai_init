@@ -256,22 +256,40 @@ context-query --text "TODO" --file-type "*.ts" --scope src/
 
 ### 3. CodeIndex
 
-**Purpose:** Persistent semantic index (symbol table, dependency graph, file metadata).
+**Purpose:** Persistent semantic cache for AI agents - indexes codebases with tree-sitter for fast symbol lookup, dependency analysis, and code intelligence.
 
 **Usage:**
 ```bash
-# Start indexing daemon (usually runs automatically)
-code-index daemon --watch .
+# Daemon management (background indexer with file watching)
+code-index daemon start           # Start the indexing daemon
+code-index daemon stop            # Stop the daemon
+code-index daemon status          # Check if daemon is running
+code-index daemon restart         # Restart the daemon
 
-# Query index
-code-index query --symbol "UserController"
-code-index query --dependencies src/auth/login.ts
-code-index query --hot-files --limit 10
+# One-time indexing (without daemon)
+code-index index /path/to/project
+
+# Query the index
+code-index query symbol "UserController"      # Find symbols by name
+code-index query file src/auth/login.ts       # Get all symbols in a file
+code-index query dependencies src/auth/login.ts  # Get file dependencies
+code-index query hot-files                    # Get frequently changed/complex files
+code-index query kind function                # List all symbols of a specific kind
+
+# Index management
+code-index stats                  # Show index statistics
+code-index reindex                # Re-index from scratch
+code-index clear                  # Clear the entire index
+code-index export                 # Export index to JSON
+
+# Output formatting
+code-index query symbol "Foo" --json          # JSON output
+code-index query symbol "Foo" --format compact  # Compact format
 ```
 
-**Output:** JSON with symbols, dependencies, metadata.
+**Output:** Human-readable or JSON format with symbols, dependencies, file metadata, and code locations.
 
-**AI Agent Note:** This is the backend for ContextQuery and CodeSummarizer. It's likely already running.
+**AI Agent Note:** This is the backend for ContextQuery and CodeSummarizer. Start the daemon once per system/workspace for continuous indexing, or use one-time `index` command for quick lookups.
 
 ---
 

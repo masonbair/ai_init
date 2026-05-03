@@ -52,6 +52,8 @@
 
 ## For AI Agents
 
+**File Organization Principle:** As you implement this architecture, remember to keep files short and focused (see `.ai/CONVENTIONS.md`). Split files when they exceed 200-300 lines or handle multiple responsibilities.
+
 **Context Generation:** Run `code-summarizer` to auto-populate sections of this file.
 
 **When to update:** After major architectural changes, new service integrations, or refactors.

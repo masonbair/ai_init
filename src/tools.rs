@@ -24,8 +24,8 @@ const KNOWN_TOOLS: &[(&str, &str, &str, &str)] = &[
     (
         "CodeIndex",
         "code-index",
-        "Persistent semantic index (symbol table, dependency graph, file metadata)",
-        "code-index daemon --watch .",
+        "Persistent semantic cache for AI agents - indexes codebases with tree-sitter for fast symbol lookup, dependency analysis, and code intelligence",
+        "code-index daemon start",
     ),
     (
         "ContextPacker",

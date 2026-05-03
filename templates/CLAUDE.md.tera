@@ -12,9 +12,18 @@
 
 ## AI Agent Instructions
 
+### Development Principles (CRITICAL)
+
+**Before writing any code, read `.ai/CONVENTIONS.md` for full details.** Key principles:
+
+1. **Test-First Development:** Write failing tests BEFORE implementation
+2. **Keep It Simple:** Minimal, clear code over complex abstractions
+3. **Use Libraries:** Leverage external libraries for common tasks
+4. **Short Files:** Split files when they exceed 200-300 lines or have multiple responsibilities
+
 ### Available Custom Tooling
 
-This project is configured with custom AI-agent tooling. **Before starting work, read `.ai/TOOLS.md`** to understand available commands.
+This project is configured with custom AI-agent tooling. **Read `.ai/TOOLS.md`** to understand available commands.
 
 {% if tools_available > 0 %}
 Quick reference:
@@ -49,10 +58,17 @@ The `.ai/` directory contains AI-optimized context:
 
 ## Development Workflow
 
-1. Read `.ai/ARCHITECTURE.md` to understand system structure
-2. Use custom tools (see `.ai/TOOLS.md`) for context gathering
-3. Follow conventions in `.ai/CONVENTIONS.md`
-4. Update architecture docs when making structural changes
+**For every feature or fix:**
+
+1. **Read `.ai/CONVENTIONS.md`** - Understand development principles (test-first, simplicity, etc.)
+2. **Read `.ai/ARCHITECTURE.md`** - Understand system structure
+3. **Write tests first** - Ensure they fail before implementation
+4. **Implement minimally** - Simple, clear code using external libraries where appropriate
+5. **Verify tests pass** - Confirm implementation works
+6. **Keep files short** - Split if files grow beyond 200-300 lines
+7. **Update docs** - Reflect any architectural changes
+
+**For context gathering:** Use custom tools in `.ai/TOOLS.md`
 
 ---
 
