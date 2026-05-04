@@ -13,11 +13,13 @@ use std::path::PathBuf;
 #[command(name = "ai-init")]
 #[command(author, version, about, long_about = None)]
 #[command(after_help = "Examples:
-  ai-init myproject              Create new AI-ready project
-  ai-init myproject --type web   Create with specific project type
-  ai-init .                      Initialize in existing directory
-  ai-init myproject --dry-run    Preview what will be created
-  ai-init myproject --no-interactive  Use defaults, no prompts")]
+  ai-init myproject                            Create new AI-ready project
+  ai-init myproject --type web                 Create with specific project type
+  ai-init .                                    Initialize in existing directory
+  ai-init . --update --backup                  Update AI files in current directory
+  ai-init myproject --repo https://github.com/user/repo  Clone and initialize repo
+  ai-init myproject --dry-run                  Preview what will be created
+  ai-init myproject --no-interactive           Use defaults, no prompts")]
 pub struct Cli {
     /// Project directory name or path.
     /// Use '.' to initialize in the current directory.
@@ -59,6 +61,18 @@ pub struct Cli {
     /// Initialize in existing directory (don't fail if directory exists)
     #[arg(long = "in-place")]
     pub in_place: bool,
+
+    /// Update/refresh AI files in existing repository
+    #[arg(long = "update")]
+    pub update: bool,
+
+    /// Backup existing AI files before updating (with .bak extension)
+    #[arg(long = "backup")]
+    pub backup: bool,
+
+    /// Clone repository from URL before initializing (e.g., https://github.com/user/repo)
+    #[arg(long = "repo", value_name = "URL")]
+    pub repo_url: Option<String>,
 
     /// Custom tool path override (format: tool-name=/path/to/binary)
     #[arg(long = "tool-path", value_name = "TOOL=PATH")]
@@ -149,6 +163,9 @@ mod tests {
             no_readme: false,
             initial_commit: false,
             in_place: false,
+            update: false,
+            backup: false,
+            repo_url: None,
             tool_paths: vec![],
         };
 
@@ -169,6 +186,9 @@ mod tests {
             no_readme: false,
             initial_commit: false,
             in_place: false,
+            update: false,
+            backup: false,
+            repo_url: None,
             tool_paths: vec![
                 "code-summarizer=/usr/local/bin/summarizer".to_string(),
                 "context-query=/home/user/bin/cquery".to_string(),
@@ -194,6 +214,9 @@ mod tests {
             no_readme: false,
             initial_commit: false,
             in_place: false,
+            update: false,
+            backup: false,
+            repo_url: None,
             tool_paths: vec![],
         };
 

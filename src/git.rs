@@ -26,6 +26,12 @@ impl GitOperations {
         path.join(".git").exists() || Repository::discover(path).is_ok()
     }
 
+    /// Clone a repository from a URL.
+    pub fn clone(url: &str, path: &Path) -> Result<Repository, GitError> {
+        let repo = Repository::clone(url, path)?;
+        Ok(repo)
+    }
+
     /// Initialize a new git repository.
     pub fn init(path: &Path) -> Result<Repository, GitError> {
         if Self::is_git_repo(path) {

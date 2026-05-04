@@ -50,6 +50,26 @@ cargo build --release
 sudo cp target/release/ai-init /usr/local/bin/
 ```
 
+### Using Cargo Install (Recommended)
+
+Install directly to your system:
+```bash
+git clone https://github.com/yourusername/ai-init.git
+cd ai-init
+cargo install --path .
+```
+
+This installs the binary to `~/.cargo/bin/` which should be in your PATH.
+
+### Update Existing Installation
+
+To update ai-init to the latest version:
+```bash
+cd ai-init
+git pull
+cargo install --path . --force
+```
+
 ### Verify Installation
 
 ```bash
@@ -82,6 +102,41 @@ ai-init my-project \
 ai-init . --in-place
 ```
 
+### Update Existing Repository
+
+```bash
+# Update AI files in existing repository
+ai-init . --update
+
+# Update with backup of existing files
+ai-init . --update --backup
+```
+
+### Clone and Initialize Repository
+
+```bash
+# Clone a GitHub repo and add AI files
+ai-init my-project --repo https://github.com/user/repo
+
+# The tool will:
+# 1. Clone the repository to 'my-project' directory
+# 2. Add AI structure (.ai/, CLAUDE.md, etc.)
+# 3. Backup any existing AI files if found
+# 4. Update .gitignore to include AI file entries
+```
+
+**Note on .gitignore**: When working with existing repositories (via `--update` or `--repo`), ai-init will add commented-out entries to `.gitignore` for AI files. You can choose whether to commit AI files to your repository by uncommenting these lines:
+
+```gitignore
+# AI-generated context files
+.ai/context/
+# Uncomment the lines below to exclude all AI files from git:
+# CLAUDE.md
+# .ai/
+```
+
+This gives you flexibility to version control AI files or keep them local-only.
+
 ### Preview Changes (Dry Run)
 
 ```bash
@@ -110,6 +165,9 @@ ai-init [OPTIONS] <PROJECT>
 | `--no-readme` | Skip README.md creation |
 | `--initial-commit` | Create initial git commit after setup |
 | `--in-place` | Initialize in existing directory |
+| `--update` | Update/refresh AI files in existing repository |
+| `--backup` | Backup existing AI files before updating (with .bak extension) |
+| `--repo <URL>` | Clone repository from URL before initializing (e.g., GitHub repo) |
 | `--tool-path <TOOL=PATH>` | Custom tool path (e.g., `code-summarizer=/usr/local/bin/summarizer`) |
 
 ### Examples
@@ -132,6 +190,28 @@ ai-init math-lib --type library --language "Python" --no-readme
 **Custom tool path override:**
 ```bash
 ai-init my-project --tool-path "code-summarizer=/home/user/bin/my-summarizer"
+```
+
+**Update existing repository:**
+```bash
+cd existing-project
+ai-init . --update --backup
+```
+
+**Update existing repository non-interactively:**
+```bash
+cd existing-project
+ai-init . --update --no-interactive
+```
+
+**Clone and initialize repository:**
+```bash
+ai-init my-fork --repo https://github.com/user/repository
+```
+
+**Clone repository with custom settings:**
+```bash
+ai-init local-copy --repo https://github.com/user/repo --type web --language "TypeScript,Rust"
 ```
 
 ## Generated Project Structure
@@ -253,6 +333,53 @@ Contributions are welcome. Please:
 4. Ensure all tests pass (`cargo test`)
 5. Run `cargo clippy` and fix any warnings
 6. Submit a pull request
+
+## Working with Existing Repositories
+
+`ai-init` can be used to add AI-ready structure to existing projects:
+
+### Adding AI Files to Existing Project
+
+Navigate to your existing project and run:
+
+```bash
+cd your-existing-project
+ai-init . --update
+```
+
+This will:
+- Detect if the directory is already a git repository
+- Create the `.ai/` directory structure
+- Generate `CLAUDE.md`, `TOOLS.md`, `ARCHITECTURE.md`, and `CONVENTIONS.md`
+- Skip git initialization if repo already exists
+- Preserve your existing `README.md`
+
+### Updating AI Files with Backup
+
+If you've previously run `ai-init` and want to refresh the AI files:
+
+```bash
+ai-init . --update --backup
+```
+
+This creates `.bak` backups of:
+- `CLAUDE.md` → `CLAUDE.md.bak`
+- `.ai/TOOLS.md` → `.ai/TOOLS.md.bak`
+- `.ai/ARCHITECTURE.md` → `.ai/ARCHITECTURE.md.bak`
+- `.ai/CONVENTIONS.md` → `.ai/CONVENTIONS.md.bak`
+
+Then updates them with the latest templates and detected tools.
+
+### Update Mode Behavior
+
+When using `--update`:
+- Existing git repositories are preserved (no re-initialization)
+- Existing `README.md` is never overwritten
+- `.gitignore` is created only if it doesn't exist
+- AI files in `.ai/` directory are regenerated
+- `CLAUDE.md` is regenerated
+
+Use `--backup` to preserve previous versions before regenerating.
 
 ## Related Tools
 

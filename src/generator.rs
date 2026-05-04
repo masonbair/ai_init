@@ -47,6 +47,72 @@ impl ProjectGenerator {
         })
     }
 
+    /// Write a file with optional backup of existing file.
+    fn write_with_backup(
+        path: &PathBuf,
+        content: &str,
+        backup: bool,
+        result: &mut GenerationResult,
+    ) -> Result<(), GeneratorError> {
+        // If file exists and backup is enabled, create backup
+        if path.exists() && backup {
+            let backup_path = path.with_extension(
+                format!("{}.bak", path.extension().and_then(|e| e.to_str()).unwrap_or(""))
+            );
+            fs::copy(path, &backup_path)?;
+            result.add_warning(format!("Backed up existing {} to {}", path.display(), backup_path.display()));
+        }
+
+        fs::write(path, content)?;
+        Ok(())
+    }
+
+    /// Ensure AI files are listed in .gitignore.
+    fn ensure_ai_files_in_gitignore(
+        gitignore_path: &PathBuf,
+        backup: bool,
+        result: &mut GenerationResult,
+    ) -> Result<(), GeneratorError> {
+        let ai_entries = vec![
+            "# AI-generated context files",
+            ".ai/context/",
+            "# Uncomment the lines below to exclude all AI files from git:",
+            "# CLAUDE.md",
+            "# .ai/",
+        ];
+
+        let mut content = if gitignore_path.exists() {
+            fs::read_to_string(gitignore_path)?
+        } else {
+            String::new()
+        };
+
+        // Check if AI entries already exist
+        let has_ai_section = content.contains("# AI-generated context files");
+
+        if !has_ai_section {
+            // Backup if needed
+            if gitignore_path.exists() && backup {
+                let backup_path = gitignore_path.with_extension("gitignore.bak");
+                fs::copy(gitignore_path, &backup_path)?;
+                result.add_warning(format!("Backed up existing .gitignore to {}", backup_path.display()));
+            }
+
+            // Append AI entries
+            if !content.is_empty() && !content.ends_with('\n') {
+                content.push('\n');
+            }
+            content.push('\n');
+            content.push_str(&ai_entries.join("\n"));
+            content.push('\n');
+
+            fs::write(gitignore_path, content)?;
+            result.add_warning("Added AI file entries to .gitignore".to_string());
+        }
+
+        Ok(())
+    }
+
     /// Perform a dry run to preview what will be created.
     pub fn dry_run(&self, config: &ProjectConfig) -> Result<DryRunResult, GeneratorError> {
         let mut result = DryRunResult::new();
@@ -116,6 +182,12 @@ impl ProjectGenerator {
         let base_path = &config.target_path;
         let mut result = GenerationResult::new();
 
+        // Check if we're in existing repo mode
+        let is_existing_repo = base_path.exists() && GitOperations::is_git_repo(base_path);
+        if is_existing_repo && config.update_mode {
+            result.add_warning("Updating existing repository with AI files".to_string());
+        }
+
         // Create base directory if it doesn't exist
         if !base_path.exists() {
             fs::create_dir_all(base_path)?;
@@ -126,9 +198,14 @@ impl ProjectGenerator {
         let ai_dir = base_path.join(".ai");
         let context_dir = ai_dir.join("context");
 
-        fs::create_dir_all(&context_dir)?;
-        result.add_created_dir(ai_dir.clone());
-        result.add_created_dir(context_dir);
+        if !ai_dir.exists() {
+            fs::create_dir_all(&context_dir)?;
+            result.add_created_dir(ai_dir.clone());
+            result.add_created_dir(context_dir);
+        } else if !context_dir.exists() {
+            fs::create_dir(&context_dir)?;
+            result.add_created_dir(context_dir);
+        }
 
         // Detect tools and create context
         let tools = self.tool_detector.detect_all();
@@ -137,41 +214,44 @@ impl ProjectGenerator {
         // Generate CLAUDE.md
         let claude_content = self.renderer.render_claude_md(&ctx)?;
         let claude_path = base_path.join("CLAUDE.md");
-        fs::write(&claude_path, &claude_content)?;
+        Self::write_with_backup(&claude_path, &claude_content, config.backup_existing, &mut result)?;
         result.add_created_file(claude_path, claude_content.len());
 
         // Generate .ai/TOOLS.md
         let tools_content = self.renderer.render_tools_md(&ctx)?;
         let tools_path = ai_dir.join("TOOLS.md");
-        fs::write(&tools_path, &tools_content)?;
+        Self::write_with_backup(&tools_path, &tools_content, config.backup_existing, &mut result)?;
         result.add_created_file(tools_path, tools_content.len());
 
         // Generate .ai/ARCHITECTURE.md
         let arch_content = self.renderer.render_architecture_md(&ctx)?;
         let arch_path = ai_dir.join("ARCHITECTURE.md");
-        fs::write(&arch_path, &arch_content)?;
+        Self::write_with_backup(&arch_path, &arch_content, config.backup_existing, &mut result)?;
         result.add_created_file(arch_path, arch_content.len());
 
         // Generate .ai/CONVENTIONS.md
         let conv_content = self.renderer.render_conventions_md(&ctx)?;
         let conv_path = ai_dir.join("CONVENTIONS.md");
-        fs::write(&conv_path, &conv_content)?;
+        Self::write_with_backup(&conv_path, &conv_content, config.backup_existing, &mut result)?;
         result.add_created_file(conv_path, conv_content.len());
 
         // Generate README.md if enabled
         if config.create_readme {
             let readme_content = self.renderer.render_readme_md(&ctx)?;
             let readme_path = base_path.join("README.md");
-            fs::write(&readme_path, &readme_content)?;
-            result.add_created_file(readme_path, readme_content.len());
+            // Only create README if it doesn't exist in update mode
+            if !config.update_mode || !readme_path.exists() {
+                Self::write_with_backup(&readme_path, &readme_content, config.backup_existing, &mut result)?;
+                result.add_created_file(readme_path, readme_content.len());
+            }
         }
 
         // Git initialization
-        if config.init_git {
+        if config.init_git && !is_existing_repo {
             // Generate .gitignore
             let gitignore_content = self.renderer.render_gitignore(&ctx)?;
             let gitignore_path = base_path.join(".gitignore");
-            fs::write(&gitignore_path, &gitignore_content)?;
+            Self::write_with_backup(&gitignore_path, &gitignore_content, config.backup_existing, &mut result)?;
             result.add_created_file(gitignore_path, gitignore_content.len());
 
             // Initialize git repo
@@ -197,6 +277,11 @@ impl ProjectGenerator {
                     result.add_warning(format!("Failed to initialize git: {}", e));
                 }
             }
+        } else if is_existing_repo {
+            result.add_warning("Working with existing git repository".to_string());
+            // Update .gitignore to include AI files
+            let gitignore_path = base_path.join(".gitignore");
+            Self::ensure_ai_files_in_gitignore(&gitignore_path, config.backup_existing, &mut result)?;
         }
 
         result.tools_detected = ctx.tools_available;
@@ -328,6 +413,8 @@ mod tests {
             init_git: true,
             initial_commit: false,
             target_path: temp_dir.path().join("test-project"),
+            update_mode: false,
+            backup_existing: false,
         }
     }
 

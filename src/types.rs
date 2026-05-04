@@ -83,6 +83,8 @@ pub struct ProjectConfig {
     pub init_git: bool,
     pub initial_commit: bool,
     pub target_path: PathBuf,
+    pub update_mode: bool,
+    pub backup_existing: bool,
 }
 
 impl Default for ProjectConfig {
@@ -96,6 +98,8 @@ impl Default for ProjectConfig {
             init_git: true,
             initial_commit: false,
             target_path: PathBuf::new(),
+            update_mode: false,
+            backup_existing: false,
         }
     }
 }

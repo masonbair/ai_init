@@ -117,6 +117,8 @@ mod tests {
             init_git: true,
             initial_commit: false,
             target_path: std::path::PathBuf::from("/tmp/test"),
+            update_mode: false,
+            backup_existing: false,
         };
 
         let tools = vec![

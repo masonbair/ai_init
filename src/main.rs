@@ -19,6 +19,7 @@ use cli::Cli;
 use colored::*;
 use config::Config;
 use generator::ProjectGenerator;
+use git::GitOperations;
 use interactive::{ask_existing_directory, ExistingDirAction, InteractivePrompt};
 use std::process::ExitCode;
 use tools::ToolDetector;
@@ -43,14 +44,43 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         Config::default()
     });
 
+    // Handle repository cloning if --repo is provided
+    if let Some(repo_url) = &cli.repo_url {
+        println!("{} Cloning repository from {}...", "→".cyan(), repo_url);
+
+        let project_path = cli.absolute_project_path()?;
+
+        // Check if directory already exists
+        if project_path.exists() {
+            return Err(format!(
+                "Directory '{}' already exists. Please choose a different name or remove the existing directory.",
+                project_path.display()
+            ).into());
+        }
+
+        // Clone the repository
+        match GitOperations::clone(repo_url, &project_path) {
+            Ok(_) => {
+                println!("{} Repository cloned successfully", "✓".green());
+            }
+            Err(e) => {
+                return Err(format!("Failed to clone repository: {}", e).into());
+            }
+        }
+    }
+
     // Get absolute project path
     let project_path = cli.absolute_project_path()?;
 
+    // Determine update mode (automatically true for cloned repos)
+    let update_mode = cli.update || cli.repo_url.is_some() || (project_path.exists() && cli.in_place);
+    let backup_mode = cli.backup || cli.repo_url.is_some(); // Always backup when cloning
+
     // Check if directory exists and handle accordingly
-    if project_path.exists() && !cli.in_place && !cli.is_current_dir() {
+    if project_path.exists() && !cli.in_place && !cli.update && !cli.is_current_dir() {
         if cli.no_interactive {
             return Err(format!(
-                "Directory '{}' already exists. Use --in-place to initialize in existing directory.",
+                "Directory '{}' already exists. Use --in-place or --update to work with existing directory.",
                 project_path.display()
             ).into());
         }
@@ -89,16 +119,21 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             cli.no_readme,
             cli.no_git,
             cli.initial_commit,
+            update_mode,
+            backup_mode,
         )
     } else {
         let prompt = InteractivePrompt::new(config.clone());
-        prompt.run(
+        let mut cfg = prompt.run(
             project_path,
             Some(cli.project_name()),
             cli.description.clone(),
             cli.parsed_languages(),
             cli.parsed_project_type(),
-        )?
+        )?;
+        cfg.update_mode = update_mode;
+        cfg.backup_existing = backup_mode;
+        cfg
     };
 
     // Create generator

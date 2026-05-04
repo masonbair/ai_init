@@ -141,6 +141,8 @@ impl InteractivePrompt {
             init_git,
             initial_commit,
             target_path: project_path,
+            update_mode: false,
+            backup_existing: false,
         })
     }
 
@@ -155,6 +157,8 @@ impl InteractivePrompt {
         no_readme: bool,
         no_git: bool,
         initial_commit: bool,
+        update_mode: bool,
+        backup_existing: bool,
     ) -> ProjectConfig {
         let default_name = project_path
             .file_name()
@@ -176,6 +180,8 @@ impl InteractivePrompt {
             init_git: !no_git && self.config.defaults.git_init,
             initial_commit,
             target_path: project_path,
+            update_mode,
+            backup_existing,
         }
     }
 }
@@ -231,6 +237,8 @@ mod tests {
             false,
             false,
             false,
+            false,
+            false,
         );
 
         assert_eq!(project_config.name, "test-project");
@@ -240,5 +248,7 @@ mod tests {
         assert!(project_config.create_readme);
         assert!(project_config.init_git);
         assert!(!project_config.initial_commit);
+        assert!(!project_config.update_mode);
+        assert!(!project_config.backup_existing);
     }
 }
