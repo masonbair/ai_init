@@ -228,3 +228,77 @@ fn test_tools_md_contains_tool_info() {
     assert!(tools_content.contains("CodeIndex"));
     assert!(tools_content.contains("ContextPacker"));
 }
+
+#[test]
+fn test_minimal_mode_is_default() {
+    let temp = TempDir::new().unwrap();
+    let project_path = temp.path().join("minimal-project");
+
+    ai_init()
+        .arg(&project_path)
+        .arg("--no-interactive")
+        .assert()
+        .success();
+
+    // Verify TOOLS.md exists (minimal version)
+    assert!(project_path.join(".ai/TOOLS.md").exists());
+
+    // Verify CLAUDE.md is minimal (should be shorter and not contain verbose instructions)
+    let claude_content = fs::read_to_string(project_path.join("CLAUDE.md")).unwrap();
+    assert!(claude_content.contains("Development Principles"));
+    assert!(!claude_content.contains("For AI Agents"));  // Verbose-only section
+
+    // Verify TOOLS.md is minimal (should reference --help for full docs)
+    let tools_content = fs::read_to_string(project_path.join(".ai/TOOLS.md")).unwrap();
+    assert!(tools_content.contains("--help"));
+    assert!(!tools_content.contains("Best Practices"));  // Verbose-only section
+}
+
+#[test]
+fn test_verbose_mode() {
+    let temp = TempDir::new().unwrap();
+    let project_path = temp.path().join("verbose-project");
+
+    ai_init()
+        .arg(&project_path)
+        .arg("--no-interactive")
+        .arg("--verbose")
+        .assert()
+        .success();
+
+    // Verify TOOLS.md exists
+    assert!(project_path.join(".ai/TOOLS.md").exists());
+
+    // Verify CLAUDE.md is verbose
+    let claude_content = fs::read_to_string(project_path.join("CLAUDE.md")).unwrap();
+    assert!(claude_content.contains("AI Agent Instructions"));
+
+    // Verify TOOLS.md is verbose
+    let tools_content = fs::read_to_string(project_path.join(".ai/TOOLS.md")).unwrap();
+    assert!(tools_content.contains("Best Practices"));
+}
+
+#[test]
+fn test_mcp_mode_skips_tools_md() {
+    let temp = TempDir::new().unwrap();
+    let project_path = temp.path().join("mcp-project");
+
+    ai_init()
+        .arg(&project_path)
+        .arg("--no-interactive")
+        .arg("--mcp")
+        .assert()
+        .success();
+
+    // Verify TOOLS.md was NOT created
+    assert!(!project_path.join(".ai/TOOLS.md").exists());
+
+    // Verify other files still exist
+    assert!(project_path.join("CLAUDE.md").exists());
+    assert!(project_path.join(".ai/CONVENTIONS.md").exists());
+    assert!(project_path.join(".ai/ARCHITECTURE.md").exists());
+
+    // Verify CLAUDE.md is minimal (MCP mode uses minimal template)
+    let claude_content = fs::read_to_string(project_path.join("CLAUDE.md")).unwrap();
+    assert!(claude_content.contains("Development Principles"));
+}

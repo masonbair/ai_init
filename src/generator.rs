@@ -5,7 +5,7 @@
 use crate::git::{GitError, GitOperations};
 use crate::templates::{TemplateError, TemplateRenderer};
 use crate::tools::ToolDetector;
-use crate::types::{DryRunFile, DryRunResult, ProjectConfig, TemplateContext};
+use crate::types::{DryRunFile, DryRunResult, GenerationMode, ProjectConfig, TemplateContext};
 use colored::*;
 use std::fs;
 use std::path::PathBuf;
@@ -127,18 +127,20 @@ impl ProjectGenerator {
         result.directories.push(base_path.join(".ai/context"));
 
         // CLAUDE.md
-        let claude_content = self.renderer.render_claude_md(&ctx)?;
+        let claude_content = self.renderer.render_claude_md(&ctx, config.generation_mode)?;
         result.files.push(DryRunFile {
             path: base_path.join("CLAUDE.md"),
             size_bytes: claude_content.len(),
         });
 
-        // .ai/TOOLS.md
-        let tools_content = self.renderer.render_tools_md(&ctx)?;
-        result.files.push(DryRunFile {
-            path: base_path.join(".ai/TOOLS.md"),
-            size_bytes: tools_content.len(),
-        });
+        // .ai/TOOLS.md (skip in MCP mode)
+        if config.generation_mode != GenerationMode::Mcp {
+            let tools_content = self.renderer.render_tools_md(&ctx, config.generation_mode)?;
+            result.files.push(DryRunFile {
+                path: base_path.join(".ai/TOOLS.md"),
+                size_bytes: tools_content.len(),
+            });
+        }
 
         // .ai/ARCHITECTURE.md
         let arch_content = self.renderer.render_architecture_md(&ctx)?;
@@ -211,16 +213,18 @@ impl ProjectGenerator {
         let ctx = TemplateContext::from_config(config, tools);
 
         // Generate CLAUDE.md
-        let claude_content = self.renderer.render_claude_md(&ctx)?;
+        let claude_content = self.renderer.render_claude_md(&ctx, config.generation_mode)?;
         let claude_path = base_path.join("CLAUDE.md");
         Self::write_with_backup(&claude_path, &claude_content, config.backup_existing, &mut result)?;
         result.add_created_file(claude_path, claude_content.len());
 
-        // Generate .ai/TOOLS.md
-        let tools_content = self.renderer.render_tools_md(&ctx)?;
-        let tools_path = ai_dir.join("TOOLS.md");
-        Self::write_with_backup(&tools_path, &tools_content, config.backup_existing, &mut result)?;
-        result.add_created_file(tools_path, tools_content.len());
+        // Generate .ai/TOOLS.md (skip in MCP mode)
+        if config.generation_mode != GenerationMode::Mcp {
+            let tools_content = self.renderer.render_tools_md(&ctx, config.generation_mode)?;
+            let tools_path = ai_dir.join("TOOLS.md");
+            Self::write_with_backup(&tools_path, &tools_content, config.backup_existing, &mut result)?;
+            result.add_created_file(tools_path, tools_content.len());
+        }
 
         // Generate .ai/ARCHITECTURE.md
         let arch_content = self.renderer.render_architecture_md(&ctx)?;
@@ -414,6 +418,7 @@ mod tests {
             target_path: temp_dir.path().join("test-project"),
             update_mode: false,
             backup_existing: false,
+            generation_mode: GenerationMode::Minimal,
         }
     }
 

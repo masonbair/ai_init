@@ -2,13 +2,15 @@
 //!
 //! Uses Tera for Jinja2-like template rendering with embedded templates.
 
-use crate::types::TemplateContext;
+use crate::types::{GenerationMode, TemplateContext};
 use tera::{Context, Tera};
 use thiserror::Error;
 
 // Embed templates at compile time
-const TEMPLATE_CLAUDE_MD: &str = include_str!("../templates/CLAUDE.md.tera");
-const TEMPLATE_TOOLS_MD: &str = include_str!("../templates/TOOLS.md.tera");
+const TEMPLATE_CLAUDE_MD_MINIMAL: &str = include_str!("../templates/CLAUDE.md.minimal.tera");
+const TEMPLATE_CLAUDE_MD_VERBOSE: &str = include_str!("../templates/CLAUDE.md.verbose.tera");
+const TEMPLATE_TOOLS_MD_MINIMAL: &str = include_str!("../templates/TOOLS.md.minimal.tera");
+const TEMPLATE_TOOLS_MD_VERBOSE: &str = include_str!("../templates/TOOLS.md.verbose.tera");
 const TEMPLATE_ARCHITECTURE_MD: &str = include_str!("../templates/ARCHITECTURE.md.tera");
 const TEMPLATE_CONVENTIONS_MD: &str = include_str!("../templates/CONVENTIONS.md.tera");
 const TEMPLATE_README_MD: &str = include_str!("../templates/README.md.tera");
@@ -32,10 +34,14 @@ impl TemplateRenderer {
     pub fn new() -> Result<Self, TemplateError> {
         let mut tera = Tera::default();
 
-        // Add all embedded templates
-        tera.add_raw_template("CLAUDE.md", TEMPLATE_CLAUDE_MD)
+        // Add all embedded templates - both minimal and verbose variants
+        tera.add_raw_template("CLAUDE.md.minimal", TEMPLATE_CLAUDE_MD_MINIMAL)
             .map_err(|e| TemplateError::InitError(e.to_string()))?;
-        tera.add_raw_template("TOOLS.md", TEMPLATE_TOOLS_MD)
+        tera.add_raw_template("CLAUDE.md.verbose", TEMPLATE_CLAUDE_MD_VERBOSE)
+            .map_err(|e| TemplateError::InitError(e.to_string()))?;
+        tera.add_raw_template("TOOLS.md.minimal", TEMPLATE_TOOLS_MD_MINIMAL)
+            .map_err(|e| TemplateError::InitError(e.to_string()))?;
+        tera.add_raw_template("TOOLS.md.verbose", TEMPLATE_TOOLS_MD_VERBOSE)
             .map_err(|e| TemplateError::InitError(e.to_string()))?;
         tera.add_raw_template("ARCHITECTURE.md", TEMPLATE_ARCHITECTURE_MD)
             .map_err(|e| TemplateError::InitError(e.to_string()))?;
@@ -65,14 +71,22 @@ impl TemplateRenderer {
         })
     }
 
-    /// Render CLAUDE.md template.
-    pub fn render_claude_md(&self, ctx: &TemplateContext) -> Result<String, TemplateError> {
-        self.render("CLAUDE.md", ctx)
+    /// Render CLAUDE.md template based on generation mode.
+    pub fn render_claude_md(&self, ctx: &TemplateContext, mode: GenerationMode) -> Result<String, TemplateError> {
+        let template_name = match mode {
+            GenerationMode::Minimal | GenerationMode::Mcp => "CLAUDE.md.minimal",
+            GenerationMode::Verbose => "CLAUDE.md.verbose",
+        };
+        self.render(template_name, ctx)
     }
 
-    /// Render TOOLS.md template.
-    pub fn render_tools_md(&self, ctx: &TemplateContext) -> Result<String, TemplateError> {
-        self.render("TOOLS.md", ctx)
+    /// Render TOOLS.md template based on generation mode.
+    pub fn render_tools_md(&self, ctx: &TemplateContext, mode: GenerationMode) -> Result<String, TemplateError> {
+        let template_name = match mode {
+            GenerationMode::Minimal | GenerationMode::Mcp => "TOOLS.md.minimal",
+            GenerationMode::Verbose => "TOOLS.md.verbose",
+        };
+        self.render(template_name, ctx)
     }
 
     /// Render ARCHITECTURE.md template.
@@ -105,7 +119,7 @@ impl Default for TemplateRenderer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{ProjectConfig, ProjectType, ToolInfo};
+    use crate::types::{GenerationMode, ProjectConfig, ProjectType, ToolInfo};
 
     fn create_test_context() -> TemplateContext {
         let config = ProjectConfig {
@@ -119,6 +133,7 @@ mod tests {
             target_path: std::path::PathBuf::from("/tmp/test"),
             update_mode: false,
             backup_existing: false,
+            generation_mode: GenerationMode::Minimal,
         };
 
         let tools = vec![
@@ -145,7 +160,7 @@ mod tests {
     fn test_render_claude_md() {
         let renderer = TemplateRenderer::new().unwrap();
         let ctx = create_test_context();
-        let result = renderer.render_claude_md(&ctx);
+        let result = renderer.render_claude_md(&ctx, GenerationMode::Minimal);
 
         assert!(result.is_ok());
         let content = result.unwrap();
@@ -157,7 +172,7 @@ mod tests {
     fn test_render_tools_md() {
         let renderer = TemplateRenderer::new().unwrap();
         let ctx = create_test_context();
-        let result = renderer.render_tools_md(&ctx);
+        let result = renderer.render_tools_md(&ctx, GenerationMode::Minimal);
 
         assert!(result.is_ok());
         let content = result.unwrap();

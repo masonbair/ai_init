@@ -15,6 +15,19 @@ pub enum ProjectType {
     Mixed,
 }
 
+/// Template generation mode.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum GenerationMode {
+    /// Minimal mode (default): ~6,300 token overhead, lean files
+    #[default]
+    Minimal,
+    /// Verbose mode: ~9,100 token overhead, full documentation
+    Verbose,
+    /// MCP mode: ~6,300 token overhead, assumes tools in MCP server
+    Mcp,
+}
+
 impl ProjectType {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -85,6 +98,7 @@ pub struct ProjectConfig {
     pub target_path: PathBuf,
     pub update_mode: bool,
     pub backup_existing: bool,
+    pub generation_mode: GenerationMode,
 }
 
 impl Default for ProjectConfig {
@@ -100,6 +114,7 @@ impl Default for ProjectConfig {
             target_path: PathBuf::new(),
             update_mode: false,
             backup_existing: false,
+            generation_mode: GenerationMode::Minimal,
         }
     }
 }

@@ -1,0 +1,16 @@
+# Available Tools
+
+{{ tools_available }}/{{ tools | length }} installed
+
+{% for tool in tools %}
+## {{ tool.name }}
+{% if tool.installed %}✅ `{{ tool.path }}`{% else %}❌ Not installed{% endif %}
+
+{{ tool.description }}
+
+```bash
+{{ tool.usage }}
+```
+{% endfor %}
+
+Run `<tool> --help` for full documentation.

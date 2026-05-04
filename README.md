@@ -26,6 +26,8 @@ This reduces context consumption and improves AI agent effectiveness from the fi
 
 ## Features
 
+- **Token-Efficient by Default** - Minimal mode generates ~6,300 token overhead (50% less than verbose)
+- **Multiple Generation Modes** - Choose between minimal, verbose, or MCP-aware modes
 - **Interactive Project Setup** - Guided prompts for project configuration
 - **Automatic Tool Detection** - Scans your system for AI-assistant tools (code-summarizer, context-query, etc.)
 - **Template-Based Generation** - Customizable Tera templates for all generated files
@@ -76,6 +78,32 @@ cargo install --path . --force
 ai-init --version
 ```
 
+## Token Efficiency
+
+`ai-init` is optimized for minimal token overhead by default:
+
+- **Minimal mode (default):** ~6,300 token overhead - Lean and efficient
+- **Verbose mode:** ~9,100 token overhead - Full documentation
+- **MCP mode:** ~6,300 token overhead - Assumes tools in MCP server (no TOOLS.md)
+
+### Generation Modes
+
+```bash
+# Minimal (default) - lean and efficient
+ai-init my-project
+
+# Verbose - full documentation and extended tool descriptions
+ai-init my-project --verbose
+
+# MCP-aware - assumes tools available via MCP server, skips TOOLS.md
+ai-init my-project --mcp
+```
+
+**When to use each mode:**
+- **Minimal (default):** Best for most projects. Provides essential context with minimal tokens.
+- **Verbose:** Use when you need comprehensive tool documentation or team onboarding materials.
+- **MCP:** Use when you have an MCP server configured with tool access. Skips TOOLS.md entirely.
+
 ## Quick Start
 
 ### Create a New Project
@@ -84,7 +112,7 @@ ai-init --version
 ai-init my-awesome-project
 ```
 
-This launches an interactive prompt to configure your project.
+This launches an interactive prompt to configure your project in minimal mode (default).
 
 ### Non-Interactive Mode
 
@@ -169,6 +197,8 @@ ai-init [OPTIONS] <PROJECT>
 | `--backup` | Backup existing AI files before updating (with .bak extension) |
 | `--repo <URL>` | Clone repository from URL before initializing (e.g., GitHub repo) |
 | `--tool-path <TOOL=PATH>` | Custom tool path (e.g., `code-summarizer=/usr/local/bin/summarizer`) |
+| `--verbose` | Generate full verbose documentation (includes extended TOOLS.md) |
+| `--mcp` | MCP-aware mode (skip TOOLS.md, assumes tools in MCP server) |
 
 ### Examples
 
@@ -214,6 +244,16 @@ ai-init my-fork --repo https://github.com/user/repository
 ai-init local-copy --repo https://github.com/user/repo --type web --language "TypeScript,Rust"
 ```
 
+**Create project with verbose documentation:**
+```bash
+ai-init my-project --verbose
+```
+
+**Create project for MCP environment:**
+```bash
+ai-init my-project --mcp
+```
+
 ## Generated Project Structure
 
 After running `ai-init`, your project will have the following structure:
@@ -233,9 +273,11 @@ my-project/
 
 ### Key Files
 
-**CLAUDE.md** - Top-level instructions for AI agents working on your project. References the `.ai/` directory for additional context.
+**CLAUDE.md** - Top-level instructions for AI agents working on your project. References the `.ai/` directory for additional context. Uses minimal or verbose template depending on generation mode.
 
-**.ai/TOOLS.md** - Comprehensive registry of detected tools with:
+**.ai/TOOLS.md** - Registry of detected tools (not generated in MCP mode):
+- **Minimal mode:** Tool name, status, basic description, and primary usage command
+- **Verbose mode:** Extended descriptions, best practices, and detailed usage examples
 - Tool name and binary path
 - Description and purpose
 - Usage examples
@@ -279,11 +321,13 @@ context-query = "/home/user/bin/cquery"
 
 You can override default templates by creating custom Tera templates in your template directory. Supported templates:
 - `README.md.tera`
-- `CLAUDE.md.tera`
-- `TOOLS.md.tera`
+- `CLAUDE.md.minimal.tera` / `CLAUDE.md.verbose.tera`
+- `TOOLS.md.minimal.tera` / `TOOLS.md.verbose.tera`
 - `ARCHITECTURE.md.tera`
 - `CONVENTIONS.md.tera`
 - `gitignore.tera`
+
+Note: CLAUDE.md and TOOLS.md have both minimal and verbose variants. The appropriate template is selected based on the `--verbose` or `--mcp` flags.
 
 ## Development
 

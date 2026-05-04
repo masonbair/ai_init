@@ -23,6 +23,7 @@ use git::GitOperations;
 use interactive::{ask_existing_directory, ExistingDirAction, InteractivePrompt};
 use std::process::ExitCode;
 use tools::ToolDetector;
+use types::GenerationMode;
 
 fn main() -> ExitCode {
     match run() {
@@ -107,6 +108,15 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         tool_detector.add_custom_path(name, path.clone());
     }
 
+    // Determine generation mode from CLI flags
+    let generation_mode = if cli.mcp {
+        GenerationMode::Mcp
+    } else if cli.verbose {
+        GenerationMode::Verbose
+    } else {
+        GenerationMode::Minimal
+    };
+
     // Build project configuration
     let project_config = if cli.no_interactive {
         let prompt = InteractivePrompt::new(config.clone());
@@ -121,6 +131,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             cli.initial_commit,
             update_mode,
             backup_mode,
+            generation_mode,
         )
     } else {
         let prompt = InteractivePrompt::new(config.clone());
@@ -130,6 +141,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             cli.description.clone(),
             cli.parsed_languages(),
             cli.parsed_project_type(),
+            generation_mode,
         )?;
         cfg.update_mode = update_mode;
         cfg.backup_existing = backup_mode;

@@ -77,6 +77,14 @@ pub struct Cli {
     /// Custom tool path override (format: tool-name=/path/to/binary)
     #[arg(long = "tool-path", value_name = "TOOL=PATH")]
     pub tool_paths: Vec<String>,
+
+    /// Generate full verbose documentation (includes extended TOOLS.md)
+    #[arg(long = "verbose")]
+    pub verbose: bool,
+
+    /// MCP-aware mode (skip TOOLS.md, assumes tools available via MCP server)
+    #[arg(long = "mcp")]
+    pub mcp: bool,
 }
 
 impl Cli {
@@ -167,6 +175,8 @@ mod tests {
             backup: false,
             repo_url: None,
             tool_paths: vec![],
+            verbose: false,
+            mcp: false,
         };
 
         let langs = cli.parsed_languages();
@@ -193,6 +203,8 @@ mod tests {
                 "code-summarizer=/usr/local/bin/summarizer".to_string(),
                 "context-query=/home/user/bin/cquery".to_string(),
             ],
+            verbose: false,
+            mcp: false,
         };
 
         let paths = cli.parsed_tool_paths();
@@ -218,6 +230,8 @@ mod tests {
             backup: false,
             repo_url: None,
             tool_paths: vec![],
+            verbose: false,
+            mcp: false,
         };
 
         assert_eq!(cli.project_name(), "my-awesome-project");

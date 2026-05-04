@@ -3,7 +3,7 @@
 //! Handles user interaction for gathering project configuration.
 
 use crate::config::Config;
-use crate::types::{ProjectConfig, ProjectType};
+use crate::types::{GenerationMode, ProjectConfig, ProjectType};
 use colored::*;
 use dialoguer::{Confirm, Input, Select};
 use std::path::PathBuf;
@@ -46,6 +46,7 @@ impl InteractivePrompt {
         preset_description: Option<String>,
         preset_languages: Vec<String>,
         preset_type: Option<ProjectType>,
+        generation_mode: GenerationMode,
     ) -> Result<ProjectConfig, InteractiveError> {
         self.show_banner();
 
@@ -143,6 +144,7 @@ impl InteractivePrompt {
             target_path: project_path,
             update_mode: false,
             backup_existing: false,
+            generation_mode,
         })
     }
 
@@ -159,6 +161,7 @@ impl InteractivePrompt {
         initial_commit: bool,
         update_mode: bool,
         backup_existing: bool,
+        generation_mode: GenerationMode,
     ) -> ProjectConfig {
         let default_name = project_path
             .file_name()
@@ -182,6 +185,7 @@ impl InteractivePrompt {
             target_path: project_path,
             update_mode,
             backup_existing,
+            generation_mode,
         }
     }
 }
@@ -239,6 +243,7 @@ mod tests {
             false,
             false,
             false,
+            GenerationMode::Minimal,
         );
 
         assert_eq!(project_config.name, "test-project");
@@ -250,5 +255,6 @@ mod tests {
         assert!(!project_config.initial_commit);
         assert!(!project_config.update_mode);
         assert!(!project_config.backup_existing);
+        assert_eq!(project_config.generation_mode, GenerationMode::Minimal);
     }
 }

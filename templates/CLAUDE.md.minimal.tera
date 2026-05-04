@@ -1,0 +1,29 @@
+# {{ project_name }}
+
+{{ description }}
+
+**Languages:** {{ languages | join(sep=", ") }} | **Type:** {{ project_type }} | **Created:** {{ created_date }}
+
+---
+
+## Development Principles
+
+Read `.ai/CONVENTIONS.md` before coding:
+- Test-first development
+- Keep it simple
+- Files < 300 lines
+- Use libraries over custom code
+
+## Architecture
+
+See `.ai/ARCHITECTURE.md` for system design and component structure.
+
+{% if tools_available > 0 %}## Available Tools
+
+{% if tool_code_index %}**code-index** - Symbol lookup, dependency queries
+{% endif %}{% if tool_code_summarizer %}**code-summarizer** - Hotspots, complexity metrics
+{% endif %}{% if tool_context_query %}**context-query** - Structure-aware search
+{% endif %}{% if tool_context_packer %}**context-packer** - Smart context assembly
+{% endif %}
+Run tools on-demand as needed.
+{% endif %}
