@@ -76,9 +76,8 @@ impl ProjectGenerator {
         let ai_entries = vec![
             "# AI-generated context files",
             ".ai/context/",
-            "# Uncomment the lines below to exclude all AI files from git:",
-            "# CLAUDE.md",
-            "# .ai/",
+            "CLAUDE.md",
+            ".ai/",
         ];
 
         let mut content = if gitignore_path.exists() {

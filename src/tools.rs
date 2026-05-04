@@ -76,8 +76,8 @@ impl ToolDetector {
             if custom_path.exists() && is_executable(custom_path) {
                 info.installed = true;
                 info.path = Some(custom_path.clone());
-                return info;
             }
+            return info;
         }
 
         // Check PATH
@@ -160,9 +160,9 @@ mod tests {
         detector.add_custom_path("code-summarizer", PathBuf::from("/nonexistent/path"));
 
         let tools = detector.detect_all();
-        let summarizer = tools.iter().find(|t| t.binary_name == "code-summarizer").unwrap();
-
+        let summarizer = tools.iter().find(|t| t.binary_name == "code-summarizer");
+        
         // Should not be installed since path doesn't exist
-        assert!(!summarizer.installed);
+        assert!(!summarizer.unwrap().installed);
     }
 }
